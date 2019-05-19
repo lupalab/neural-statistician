@@ -2,9 +2,9 @@ import argparse
 import os
 import time
 
-from synthetic4data import Synthetic4Dataset
-from synthetic4model import Statistician
-from synthetic4plot import grid
+from setdata import SetDataset
+from setmodel import Statistician
+from setplot import grid
 from torch import optim
 from torch.autograd import Variable
 from torch.nn import functional as F
@@ -12,13 +12,17 @@ from torch.utils import data
 from tqdm import tqdm
 
 # command line args
-parser = argparse.ArgumentParser(description='Neural Statistician Synthetic Experiment')
+parser = argparse.ArgumentParser(description='Neural Statistician Set Experiment')
 
 # required
 parser.add_argument('--data-dir', required=True, type=str, default=None,
                     help='location of formatted Omniglot data')
 parser.add_argument('--output-dir', required=True, type=str, default=None,
                     help='output directory for checkpoints and figures')
+parser.add_argument('--sample-size', required=True, type=int, default=None,
+                    help='Number of points per sets.')
+parser.add_argument('--n-features', required=True, type=int, default=None,
+                    help='Number of features per point.')
 
 # optional
 parser.add_argument('--batch-size', type=int, default=64,
@@ -127,11 +131,9 @@ def run(model, optimizer, loaders, datasets):
 
 
 def main():
-    dataset = Synthetic4Dataset(data_dir=args.data_dir)
-    train_dataset = dataset['train']
-    test_dataset = dataset['test']
+    train_dataset = SetDataset(data_dir=args.data_dir, dataset_type='train') 
+    test_dataset = SetDataset(data_dir=args.data_dir, dataset_type='test') 
     datasets = (train_dataset, test_dataset)
-
     train_loader = data.DataLoader(dataset=train_dataset, batch_size=args.batch_size,
                                    shuffle=True, num_workers=0, drop_last=True)
 
@@ -140,12 +142,12 @@ def main():
     loaders = (train_loader, test_loader)
 
     # hardcoded sample_size and n_features when making Spatial MNIST dataset
-    sample_size = 50
-    n_features = 2
+    #sample_size = 50
+    #n_features = 2
     model_kwargs = {
         'batch_size': args.batch_size,
-        'sample_size': sample_size,
-        'n_features': n_features,
+        'sample_size': args.sample_size,
+        'n_features': args.n_features,
         'c_dim': args.c_dim,
         'n_hidden_statistic': args.n_hidden_statistic,
         'hidden_dim_statistic': args.hidden_dim_statistic,
