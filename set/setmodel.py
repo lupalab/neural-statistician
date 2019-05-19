@@ -3,7 +3,7 @@ import sys
 import torch
 
 from itertools import combinations
-from synthetic4nets import (StatisticNetwork, InferenceNetwork,
+from setnets import (StatisticNetwork, InferenceNetwork,
                          LatentDecoder, ObservationDecoder)
 from torch.autograd import Variable
 from torch import nn

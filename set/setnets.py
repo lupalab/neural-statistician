@@ -151,8 +151,6 @@ class StatisticNetwork(nn.Module):
                                  self.c_dim, self.nonlinearity)
 
     def forward(self, x, summarize=False):
-        print('x:\n{}'.format(x))
-        print('size:{}\n'.format(x.size()))
         e = self.prepool(x)
         e = self.pool(e, summarize=summarize)
         e = self.postpool(e)
@@ -162,7 +160,6 @@ class StatisticNetwork(nn.Module):
         if summarize:
             e = e.view(1, -1, self.hidden_dim)
         else:
-            print('e:{}'.format(e.size()))
             e = e.view(self.batch_size, self.sample_size, self.hidden_dim)
         e = e.mean(1).view(-1, self.hidden_dim)
         return e

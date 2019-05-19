@@ -2,9 +2,9 @@ import argparse
 import os
 import time
 
-from synthetic4data import Synthetic4Dataset
-from synthetic4model import Statistician
-from synthetic4plot import grid
+from setdata import Synthetic4Dataset
+from setmodel import Statistician
+from setplot import grid
 from torch import optim
 from torch.autograd import Variable
 from torch.nn import functional as F
@@ -12,14 +12,17 @@ from torch.utils import data
 from tqdm import tqdm
 
 # command line args
-parser = argparse.ArgumentParser(description='Neural Statistician Synthetic Experiment')
+parser = argparse.ArgumentParser(description='Neural Statistician FS Experiment')
 
 # required
 parser.add_argument('--data-dir', required=True, type=str, default=None,
                     help='location of formatted Omniglot data')
 parser.add_argument('--output-dir', required=True, type=str, default=None,
                     help='output directory for checkpoints and figures')
-
+parser.add_argument('--n-samples', required=True, type=int, default=None,
+                    help='Number of points per sets.')
+parser.add_argument('--n-features', required=True, type=int, default=None,
+                    help='Number of features per point.')
 # optional
 parser.add_argument('--batch-size', type=int, default=64,
                     help='batch size (of datasets) for training (default: 64)')
@@ -85,7 +88,6 @@ def run(model, optimizer, loaders, datasets):
         running_vlb = 0
         for batch in train_loader:
             inputs = Variable(batch)
-            print('inputs:{}'.format(inputs.size()))
             vlb = model.step(inputs, alpha, optimizer, clip_gradients=args.clip_gradients)
             running_vlb += vlb
 
