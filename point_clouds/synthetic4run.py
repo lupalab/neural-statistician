@@ -84,7 +84,8 @@ def run(model, optimizer, loaders, datasets):
         model.train()
         running_vlb = 0
         for batch in train_loader:
-            inputs = Variable(batch[0].cuda())
+            inputs = Variable(batch)
+            print('inputs:{}'.format(inputs.size()))
             vlb = model.step(inputs, alpha, optimizer, clip_gradients=args.clip_gradients)
             running_vlb += vlb
 
@@ -98,7 +99,7 @@ def run(model, optimizer, loaders, datasets):
         # show samples conditioned on test batch at intervals
         model.eval()
         if (epoch + 1) % viz_interval == 0:
-            inputs = Variable(test_batch[0].cuda(), volatile=True)
+            inputs = Variable(test_batch[0], volatile=True)
             samples = model.sample_conditioned(inputs)
             filename = time_stamp + '-{}.png'.format(epoch + 1)
             save_path = os.path.join(args.output_dir, 'figures/' + filename)
@@ -114,7 +115,7 @@ def run(model, optimizer, loaders, datasets):
     model.eval()
     # summarize test batch at end of training
     n = 10  # number of datasets to summarize
-    inputs = Variable(test_batch[0].cuda(), volatile=True)
+    inputs = Variable(test_batch[0], volatile=True)
     print("Summarizing...")
     summaries = model.summarize_batch(inputs[:n], output_size=6)
     print("Summary complete!")
@@ -127,11 +128,9 @@ def run(model, optimizer, loaders, datasets):
 
 
 def main():
-    dataset = Synthetic4Dataset(data_dir=args.data_dir)
-    train_dataset = dataset['train']
-    test_dataset = dataset['test']
+    train_dataset = Synthetic4Dataset(data_dir=args.data_dir, dataset_type='train') 
+    test_dataset = Synthetic4Dataset(data_dir=args.data_dir, dataset_type='test') 
     datasets = (train_dataset, test_dataset)
-
     train_loader = data.DataLoader(dataset=train_dataset, batch_size=args.batch_size,
                                    shuffle=True, num_workers=0, drop_last=True)
 
@@ -139,8 +138,8 @@ def main():
                                   shuffle=True, num_workers=0, drop_last=True)
     loaders = (train_loader, test_loader)
 
-    # hardcoded sample_size and n_features when making Spatial MNIST dataset
-    sample_size = 50
+    # hardcoded sample_size and n_features when working with synth dataset
+    sample_size = 8
     n_features = 2
     model_kwargs = {
         'batch_size': args.batch_size,
@@ -157,7 +156,6 @@ def main():
         'print_vars': args.print_vars
     }
     model = Statistician(**model_kwargs)
-    model.cuda()
     optimizer = optim.Adam(model.parameters(), lr=args.learning_rate)
 
     run(model, optimizer, loaders, datasets)

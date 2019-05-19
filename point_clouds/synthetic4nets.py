@@ -73,7 +73,7 @@ class PrePool(nn.Module):
     def forward(self, x):
         # reshape and initial affine
         e = x.view(-1, self.n_features)
-
+        
         e = self.fc_initial(e)
         e = self.bn_initial(e)
         e = self.nonlinearity(e)
@@ -151,6 +151,8 @@ class StatisticNetwork(nn.Module):
                                  self.c_dim, self.nonlinearity)
 
     def forward(self, x, summarize=False):
+        print('x:\n{}'.format(x))
+        print('size:{}\n'.format(x.size()))
         e = self.prepool(x)
         e = self.pool(e, summarize=summarize)
         e = self.postpool(e)
@@ -160,6 +162,7 @@ class StatisticNetwork(nn.Module):
         if summarize:
             e = e.view(1, -1, self.hidden_dim)
         else:
+            print('e:{}'.format(e.size()))
             e = e.view(self.batch_size, self.sample_size, self.hidden_dim)
         e = e.mean(1).view(-1, self.hidden_dim)
         return e
@@ -212,7 +215,7 @@ class InferenceNetwork(nn.Module):
             ez = self.fc_z(ez)
             ez = ez.view(self.batch_size, self.sample_size, self.hidden_dim)
         else:
-            ez = Variable(torch.zeros(ex.size()).cuda())
+            ez = Variable(torch.zeros(ex.size()))
 
         # embed c and expand for broadcast addition
         ec = self.fc_c(c)
@@ -281,7 +284,7 @@ class LatentDecoder(nn.Module):
             ez = self.fc_z(ez)
             ez = ez.view(self.batch_size, self.sample_size, self.hidden_dim)
         else:
-            ez = Variable(torch.zeros(self.batch_size, 1, self.hidden_dim).cuda())
+            ez = Variable(torch.zeros(self.batch_size, 1, self.hidden_dim))
 
         # embed c and expand for broadcast addition
         ec = self.fc_c(c)
@@ -333,7 +336,7 @@ class ObservationDecoder(nn.Module):
         self.nonlinearity = nonlinearity
 
         # shared learnable log variance
-        self.logvar = nn.Parameter(torch.randn(1, self.n_features).cuda())
+        self.logvar = nn.Parameter(torch.randn(1, self.n_features))
 
         # modules
         self.fc_zs = nn.Linear(self.n_stochastic * self.z_dim, self.hidden_dim)

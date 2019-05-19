@@ -183,7 +183,7 @@ class Statistician(nn.Module):
         optimizer.step()
 
         # output variational lower bound
-        return vlb.data[0]
+        return vlb.data
 
     def save(self, optimizer, save_path):
         torch.save({
@@ -238,7 +238,7 @@ class Statistician(nn.Module):
 
             for subset_index in subset_indices:
                 # pull out subset, numpy indexing will make this much easier
-                ix = Variable(torch.LongTensor(subset_index).cuda())
+                ix = Variable(torch.LongTensor(subset_index))
                 subset = dataset.index_select(1, ix)
 
                 # calculate approximate posterior over subset
@@ -251,7 +251,7 @@ class Statistician(nn.Module):
 
             # determine which samples to keep
             to_keep = subset_indices[best_index]
-            to_keep = Variable(torch.LongTensor(to_keep).cuda())
+            to_keep = Variable(torch.LongTensor(to_keep))
 
             # keep only desired samples
             dataset = dataset.index_select(1, to_keep)
@@ -262,7 +262,7 @@ class Statistician(nn.Module):
     @staticmethod
     def reparameterize_gaussian(mean, logvar):
         std = torch.exp(0.5 * logvar)
-        eps = Variable(torch.randn(std.size()).cuda())
+        eps = Variable(torch.randn(std.size()))
         return mean + std * eps
 
     @staticmethod
