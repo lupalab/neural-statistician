@@ -2,7 +2,7 @@ import argparse
 import os
 import time
 
-from setdata import Synthetic4Dataset
+from setdata import SetDataset
 from setmodel import Statistician
 from setplot import grid
 from torch import optim
@@ -19,10 +19,11 @@ parser.add_argument('--data-dir', required=True, type=str, default=None,
                     help='location of formatted Omniglot data')
 parser.add_argument('--output-dir', required=True, type=str, default=None,
                     help='output directory for checkpoints and figures')
-parser.add_argument('--n-samples', required=True, type=int, default=None,
+parser.add_argument('--sample-size', required=True, type=int, default=None,
                     help='Number of points per sets.')
 parser.add_argument('--n-features', required=True, type=int, default=None,
                     help='Number of features per point.')
+
 # optional
 parser.add_argument('--batch-size', type=int, default=64,
                     help='batch size (of datasets) for training (default: 64)')
@@ -86,7 +87,7 @@ def run(model, optimizer, loaders, datasets):
         # train step
         model.train()
         running_vlb = 0
-        for batch in train_loader:
+        for counter, batch in enumerate(train_loader):
             inputs = Variable(batch)
             vlb = model.step(inputs, alpha, optimizer, clip_gradients=args.clip_gradients)
             running_vlb += vlb
@@ -101,7 +102,7 @@ def run(model, optimizer, loaders, datasets):
         # show samples conditioned on test batch at intervals
         model.eval()
         if (epoch + 1) % viz_interval == 0:
-            inputs = Variable(test_batch[0], volatile=True)
+            inputs = Variable(test_batch, volatile=True)
             samples = model.sample_conditioned(inputs)
             filename = time_stamp + '-{}.png'.format(epoch + 1)
             save_path = os.path.join(args.output_dir, 'figures/' + filename)
@@ -117,7 +118,7 @@ def run(model, optimizer, loaders, datasets):
     model.eval()
     # summarize test batch at end of training
     n = 10  # number of datasets to summarize
-    inputs = Variable(test_batch[0], volatile=True)
+    inputs = Variable(test_batch, volatile=True)
     print("Summarizing...")
     summaries = model.summarize_batch(inputs[:n], output_size=6)
     print("Summary complete!")
@@ -130,8 +131,8 @@ def run(model, optimizer, loaders, datasets):
 
 
 def main():
-    train_dataset = Synthetic4Dataset(data_dir=args.data_dir, dataset_type='train') 
-    test_dataset = Synthetic4Dataset(data_dir=args.data_dir, dataset_type='test') 
+    train_dataset = SetDataset(data_dir=args.data_dir, dataset_type='train') 
+    test_dataset = SetDataset(data_dir=args.data_dir, dataset_type='test') 
     datasets = (train_dataset, test_dataset)
     train_loader = data.DataLoader(dataset=train_dataset, batch_size=args.batch_size,
                                    shuffle=True, num_workers=0, drop_last=True)
@@ -141,12 +142,12 @@ def main():
     loaders = (train_loader, test_loader)
 
     # hardcoded sample_size and n_features when working with synth dataset
-    sample_size = 8
-    n_features = 2
+    #sample_size = 50
+    #n_features = 2
     model_kwargs = {
         'batch_size': args.batch_size,
-        'sample_size': sample_size,
-        'n_features': n_features,
+        'sample_size': args.sample_size,
+        'n_features': args.n_features,
         'c_dim': args.c_dim,
         'n_hidden_statistic': args.n_hidden_statistic,
         'hidden_dim_statistic': args.hidden_dim_statistic,
