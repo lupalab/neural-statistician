@@ -88,7 +88,7 @@ def run(model, optimizer, loaders, datasets):
         model.train()
         running_vlb = 0
         for batch in train_loader:
-            inputs = Variable(batch[0].cuda())
+            inputs = Variable(batch.cuda())
             vlb = model.step(inputs, alpha, optimizer, clip_gradients=args.clip_gradients)
             running_vlb += vlb
 
@@ -102,7 +102,7 @@ def run(model, optimizer, loaders, datasets):
         # show samples conditioned on test batch at intervals
         model.eval()
         if (epoch + 1) % viz_interval == 0:
-            inputs = Variable(test_batch[0].cuda(), volatile=True)
+            inputs = Variable(test_batch.cuda(), volatile=True)
             samples = model.sample_conditioned(inputs)
             filename = time_stamp + '-{}.png'.format(epoch + 1)
             save_path = os.path.join(args.output_dir, 'figures/' + filename)
@@ -118,7 +118,7 @@ def run(model, optimizer, loaders, datasets):
     model.eval()
     # summarize test batch at end of training
     n = 10  # number of datasets to summarize
-    inputs = Variable(test_batch[0].cuda(), volatile=True)
+    inputs = Variable(test_batch.cuda(), volatile=True)
     print("Summarizing...")
     summaries = model.summarize_batch(inputs[:n], output_size=6)
     print("Summary complete!")
