@@ -199,7 +199,10 @@ class Statistician(nn.Module):
 
     def sample_conditioned(self, inputs):
         c, _ = self.statistic_network(inputs)
+        return self.sample(c)
 
+    def sample_unconditioned(self):
+        c = torch.randn[self.batch_size, self.sample_size, self.n_features]
         return self.sample(c)
 
     def sample(self, c):

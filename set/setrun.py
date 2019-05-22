@@ -1,6 +1,8 @@
 import argparse
 import os
 import time
+import pickle
+import scipy
 
 from setdata import SetDataset
 from setmodel import Statistician
@@ -123,8 +125,13 @@ def run(model, optimizer, loaders, datasets):
     summaries = model.summarize_batch(inputs[:n], output_size=6)
     print("Summary complete!")
 
+    _result={}
     _, __, x_outputs = model.forward(inputs)
-    log_like = model.log_likelihood(x_outputs)
+    _result['ll'] = model.log_likelihood(x_outputs)
+    _result['samples'] = samples_unconditioned()
+    # save log-likelihoods and samples to .p and .mat files 
+    pickle.dump(_result, open(os.path.join(args.output_dir, 'samples.p'), 'wb'))
+    scipy.io.savemat(matlab_dir, os.path.join(args.output_dir, 'samples'))
 
     # plot summarized datasets
     samples = model.sample_conditioned(inputs)
