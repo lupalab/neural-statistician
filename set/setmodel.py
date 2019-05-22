@@ -128,14 +128,20 @@ class Statistician(nn.Module):
 
         return outputs
 
-    def loss(self, outputs, weight):
-        c_outputs, z_outputs, x_outputs = outputs
 
-        # 1. Reconstruction loss
+    def log_likelihood(self, x_outputs):
         x, x_mean, x_logvar = x_outputs
         recon_loss = gaussian_log_likelihood(x.view(-1, self.n_features),
                                              x_mean, x_logvar)
         recon_loss /= (self.batch_size * self.sample_size)
+
+        return recon_loss
+
+    def loss(self, outputs, weight):
+        c_outputs, z_outputs, x_outputs = outputs
+
+        # 1. Reconstruction loss
+        recon_loss = self.log_likelihood(x_outputs)
 
         # 2. KL Divergence terms
         kl = 0
@@ -194,6 +200,9 @@ class Statistician(nn.Module):
     def sample_conditioned(self, inputs):
         c, _ = self.statistic_network(inputs)
 
+        return self.sample(c)
+
+    def sample(self, c):
         # latent decoders
         pz_samples = []
         z = None

@@ -123,6 +123,9 @@ def run(model, optimizer, loaders, datasets):
     summaries = model.summarize_batch(inputs[:n], output_size=6)
     print("Summary complete!")
 
+    _, __, x_outputs = model.forward(inputs)
+    log_like = model.log_likelihood(x_outputs)
+
     # plot summarized datasets
     samples = model.sample_conditioned(inputs)
     filename = time_stamp + '-summary.png'
